@@ -197,7 +197,12 @@ def test_import_dry_run_writes_nothing(tmp_path):
 
 
 def test_source_session_id():
-    assert source_session_id("rollout-2025-01-22T10-30-00-abc123.jsonl") == "abc123"
+    uuid = "019ccf0d-28ba-77f1-8ced-2bfb28c2502e"
+    # Codex: rollout-<iso>-<uuid> -> the full UUID, not just its last hex group.
+    assert source_session_id(f"rollout-2026-03-09T05-04-32-{uuid}.jsonl") == uuid
+    # Claude Code: the stem is itself the UUID.
+    assert source_session_id(f"{uuid}.jsonl") == uuid
+    # No UUID present -> fall back to the whole stem.
     assert source_session_id("plain.jsonl") == "plain"
 
 

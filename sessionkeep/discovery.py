@@ -8,8 +8,15 @@ from __future__ import annotations
 
 import os
 import pathlib
+import re
 import time
 from typing import Iterable
+
+#: Canonical session UUID shape (8-4-4-4-12 hex), used by both Claude Code
+#: (``<uuid>.jsonl``) and Codex (``rollout-<iso>-<uuid>.jsonl``).
+_UUID_RE = re.compile(
+    r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
+)
 
 #: Codex CLI stores rollouts under $CODEX_HOME/sessions/YYYY/MM/DD/rollout-*.jsonl
 CODEX_HOME_ENV = "CODEX_HOME"
@@ -76,14 +83,21 @@ def filter_settled(
 def source_session_id(path: os.PathLike[str] | str) -> str:
     """Best-effort stable id from a transcript filename.
 
-    Codex rollouts look like ``rollout-2025-01-22T10-30-00-abc123.jsonl``; the
-    trailing token is the most distinctive part. Falls back to the stem.
+    Both agents embed a full session UUID in the filename:
+
+    * Claude Code: ``<uuid>.jsonl`` (the stem *is* the UUID).
+    * Codex CLI:   ``rollout-<iso-timestamp>-<uuid>.jsonl``.
+
+    We extract the whole UUID so the id matches what the live hook records and
+    can be used to correlate an archive back to its session. Splitting on the
+    last ``-`` would keep only the final hex group (the UUID itself contains
+    hyphens), so we match the full 8-4-4-4-12 shape instead. Falls back to the
+    stem when there is no UUID (e.g. an arbitrary ``--from`` directory).
     """
     stem = pathlib.Path(path).stem
-    if "-" in stem:
-        tail = stem.rsplit("-", 1)[-1]
-        if tail:
-            return tail
+    match = _UUID_RE.search(stem)
+    if match:
+        return match.group(0)
     return stem
 
 

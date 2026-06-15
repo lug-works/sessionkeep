@@ -12,6 +12,14 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
   that ended without firing a `SessionEnd` hook, such as a GUI window close or a
   crash): it leaves still-active sessions alone so a partial copy is never frozen
   and marked already-archived. `discovery.filter_settled` exposes this in the API.
+### Changed
+- `discovery.source_session_id` now extracts the full session UUID (8-4-4-4-12)
+  from a transcript filename for both Claude Code (`<uuid>.jsonl`) and Codex
+  (`rollout-<iso>-<uuid>.jsonl`). Previously it kept only the last hyphen group
+  (a fragment of the UUID), so imported sessions got an id that didn't match what
+  the live hook records. Archives are keyed/deduped by source path, so existing
+  archives are unaffected; only the id/filename of newly imported sessions
+  improves.
 
 ## [0.3.0] - 2026-06-05
 ### Added
