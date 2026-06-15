@@ -5,6 +5,14 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-06-16
+### Added
+- `sessionkeep import --min-age MIN` — skip transcripts modified within the last
+  `MIN` minutes. Intended for scheduled catch-up scans (e.g. recovering sessions
+  that ended without firing a `SessionEnd` hook, such as a GUI window close or a
+  crash): it leaves still-active sessions alone so a partial copy is never frozen
+  and marked already-archived. `discovery.filter_settled` exposes this in the API.
+
 ## [0.3.0] - 2026-06-05
 ### Added
 - Custom masking via a JSON config (`~/.sessionkeep/config.json`,

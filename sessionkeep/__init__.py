@@ -1,6 +1,6 @@
 """sessionkeep — archive AI coding agent session logs with secret masking."""
 
-__version__ = "0.3.0"
+__version__ = "0.4.0"
 
 from .archiver import (
     archive_transcript,
@@ -12,7 +12,7 @@ from .archiver import (
     search_archives,
 )
 from .config import build_masker, load_config
-from .discovery import codex_home, find_codex_sessions, find_transcripts
+from .discovery import codex_home, filter_settled, find_codex_sessions, find_transcripts
 from .masking import DEFAULT_MASKER, Masker, mask_secrets
 
 __all__ = [
@@ -26,6 +26,7 @@ __all__ = [
     "build_masker",
     "load_config",
     "codex_home",
+    "filter_settled",
     "find_codex_sessions",
     "find_transcripts",
     "mask_secrets",

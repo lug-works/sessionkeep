@@ -89,10 +89,22 @@ sessionkeep import --codex
 ```
 
 Run it on a schedule (cron / Task Scheduler) to keep a masked, compressed mirror
-of your Codex history. You can also import any directory of transcripts:
+of your Codex history. You can also import any directory of transcripts —
+including Claude Code's own transcript tree, to catch sessions that ended without
+firing `SessionEnd` (a GUI window close or a crash):
 
 ```bash
 sessionkeep import --from ./logs --pattern '*.jsonl'
+sessionkeep import --from ~/.claude/projects   # catch-up for missed Claude Code sessions
+```
+
+For scheduled catch-up scans, add `--min-age MIN` to skip transcripts modified in
+the last `MIN` minutes. This leaves still-active sessions alone, so an in-progress
+transcript is never frozen as a partial copy and marked already-archived:
+
+```bash
+sessionkeep import --codex --min-age 30
+sessionkeep import --from ~/.claude/projects --min-age 30
 ```
 
 ### Browse and search your archive

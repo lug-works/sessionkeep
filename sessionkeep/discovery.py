@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import os
 import pathlib
+import time
 from typing import Iterable
 
 #: Codex CLI stores rollouts under $CODEX_HOME/sessions/YYYY/MM/DD/rollout-*.jsonl
@@ -42,6 +43,34 @@ def find_transcripts(root: os.PathLike[str] | str, pattern: str = "*.jsonl") -> 
     if not base.is_dir():
         return []
     return sorted(base.rglob(pattern))
+
+
+def filter_settled(
+    paths: Iterable[os.PathLike[str] | str],
+    min_age_seconds: float,
+    *,
+    now: float | None = None,
+) -> list[pathlib.Path]:
+    """Keep only paths last modified at least ``min_age_seconds`` ago.
+
+    Useful for catch-up scans: a transcript still being written (an active
+    session) is skipped until it has been idle long enough, so we never freeze
+    a partial copy and mark it as already-archived.
+
+    ``min_age_seconds <= 0`` disables the filter and returns everything.
+    """
+    out: list[pathlib.Path] = []
+    paths = [pathlib.Path(p) for p in paths]
+    if min_age_seconds <= 0:
+        return paths
+    cutoff = (now if now is not None else time.time()) - min_age_seconds
+    for p in paths:
+        try:
+            if os.path.getmtime(p) <= cutoff:
+                out.append(p)
+        except OSError:
+            continue
+    return out
 
 
 def source_session_id(path: os.PathLike[str] | str) -> str:

@@ -25,7 +25,7 @@ from .archiver import (
     search_archives,
 )
 from .config import build_masker
-from .discovery import find_codex_sessions, find_transcripts
+from .discovery import filter_settled, find_codex_sessions, find_transcripts
 
 
 def _report(meta: dict, quiet: bool) -> None:
@@ -175,6 +175,18 @@ def _cmd_import(args: argparse.Namespace) -> int:
         sys.stderr.write(f"[sessionkeep] no transcripts found for {label}\n")
         return 0
 
+    if args.min_age:
+        before = len(paths)
+        paths = filter_settled(paths, args.min_age * 60)
+        active = before - len(paths)
+        if active:
+            sys.stderr.write(
+                f"[sessionkeep] skipping {active} file(s) modified in the last "
+                f"{args.min_age} min (still active)\n"
+            )
+        if not paths:
+            return 0
+
     try:
         masker = build_masker(args.config)
     except ValueError as exc:
@@ -288,6 +300,15 @@ def build_parser() -> argparse.ArgumentParser:
     )
     p_import.add_argument(
         "--pattern", default="*.jsonl", help="glob for --from (default: *.jsonl)"
+    )
+    p_import.add_argument(
+        "--min-age",
+        type=int,
+        default=0,
+        metavar="MIN",
+        dest="min_age",
+        help="skip transcripts modified within the last MIN minutes "
+        "(avoids freezing an in-progress session as a partial; 0 = no filter)",
     )
     p_import.add_argument(
         "--project", default=None, help="override the project slug for imported sessions"

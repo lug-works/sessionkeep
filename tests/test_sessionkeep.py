@@ -19,7 +19,7 @@ from sessionkeep import (
 )
 from sessionkeep.archiver import default_archive_dir, derive_project_slug
 from sessionkeep.config import build_masker, extra_patterns_from_config, load_config
-from sessionkeep.discovery import find_codex_sessions, source_session_id
+from sessionkeep.discovery import filter_settled, find_codex_sessions, source_session_id
 from sessionkeep.masking import Masker
 
 # Fake tokens: correct *shape*, never real credentials.
@@ -199,6 +199,26 @@ def test_import_dry_run_writes_nothing(tmp_path):
 def test_source_session_id():
     assert source_session_id("rollout-2025-01-22T10-30-00-abc123.jsonl") == "abc123"
     assert source_session_id("plain.jsonl") == "plain"
+
+
+def test_filter_settled_keeps_idle_drops_active(tmp_path):
+    old = tmp_path / "old.jsonl"
+    fresh = tmp_path / "fresh.jsonl"
+    old.write_text("x\n", encoding="utf-8")
+    fresh.write_text("y\n", encoding="utf-8")
+    # Make `old` look modified 1 hour ago; `fresh` modified just now.
+    now = 1_000_000.0
+    os.utime(old, (now - 3600, now - 3600))
+    os.utime(fresh, (now, now))
+    # min age 30 min: only `old` survives.
+    kept = filter_settled([old, fresh], 30 * 60, now=now)
+    assert kept == [old]
+
+
+def test_filter_settled_zero_age_keeps_all(tmp_path):
+    a = tmp_path / "a.jsonl"
+    a.write_text("x\n", encoding="utf-8")
+    assert filter_settled([a], 0) == [a]
 
 
 def test_find_codex_sessions_missing_home(tmp_path):
