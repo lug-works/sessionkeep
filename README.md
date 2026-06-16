@@ -19,11 +19,16 @@ Pure Python standard library. No dependencies. One file you could read in a sitt
 
 ## Install
 
-Not on PyPI yet — install straight from GitHub (zero dependencies, so this is quick):
+```bash
+pipx install sessionkeep   # recommended (isolated, puts `sessionkeep` on your PATH)
+# or
+pip install sessionkeep
+```
+
+Zero dependencies, so it's quick either way. You can also install straight from
+source:
 
 ```bash
-pipx install git+https://github.com/lug-works/sessionkeep.git   # recommended
-# or
 pip install git+https://github.com/lug-works/sessionkeep.git
 ```
 
@@ -34,8 +39,6 @@ git clone https://github.com/lug-works/sessionkeep.git
 cd sessionkeep
 pip install -e .
 ```
-
-> A PyPI release (`pip install sessionkeep`) is planned — see the [Roadmap](#roadmap).
 
 ## Usage
 
@@ -182,7 +185,6 @@ short session id — so they're easy to grep and sort.
 
 ## Roadmap
 
-- PyPI release so `pip install sessionkeep` works directly
 - Structured (per-message) views of Codex rollout / Claude transcripts
 - Retention / pruning policies (e.g. keep last N, drop after M months)
 - A `--redact-only` mode that masks in place without archiving
